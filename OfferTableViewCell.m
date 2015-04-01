@@ -259,6 +259,21 @@
     }
 //    [priceLabel setFont:textFont];
     [self addSubview:priceLabel];
+    
+    CGRect sizeSeparatorView;
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        sizeSeparatorView.size.height = 1;
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        sizeSeparatorView.size.height = 2;
+    }
+    sizeSeparatorView.size.width = self.frame.size.width - offerImageView.frame.origin.x * 2;
+    sizeSeparatorView.origin.x = offerImageView.frame.origin.x;
+    sizeSeparatorView.origin.y = self.frame.size.height - sizeSeparatorView.size.height;
+    
+    UIView *separatorView = [[UIView alloc] initWithFrame:sizeSeparatorView];
+    [separatorView setBackgroundColor:[UIColor lightGrayColor]];
+    [self addSubview:separatorView];
 }
 
 /*- (void)getImage:(NSString *)imageString andType:(int)type {

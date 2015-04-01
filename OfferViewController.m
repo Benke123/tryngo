@@ -669,7 +669,7 @@
 - (void)tableView:(UITableView *)tableView
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     OneOfferViewController *oneOfferViewController = [[OneOfferViewController alloc] initWithIndex:[[offersArray objectAtIndex:indexPath.row] objectForKey:@"id"]];
-    [self presentViewController:oneOfferViewController animated:NO completion:nil];
+    [self presentViewController:oneOfferViewController animated:YES completion:nil];
 }
 
 - (void) keyboardWillShow:(NSNotification *)note {
