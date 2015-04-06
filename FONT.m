@@ -10,11 +10,13 @@
 
 @implementation FONT
 + (UIFont *)regularFontWithSize:(CGFloat)size {
-    return [UIFont fontWithName:@"ArialMT" size:size];
+//    return [UIFont fontWithName:@"ArialMT" size:size];
+    return [UIFont fontWithName:@"PTSans-Regular" size:size];
 }
 
 + (UIFont *)boldFontWithSize:(CGFloat)size {
-    return [UIFont fontWithName:@"Arial-BoldMT" size:size];
+//    return [UIFont fontWithName:@"Arial-BoldMT" size:size];
+    return [UIFont fontWithName:@"PTSans-Bold" size:size];
 }
 
 @end

@@ -19,6 +19,8 @@
     NSURL *url;
     NSData *offerUrlData;
     NSData *userUrlData;
+    UIActivityIndicatorView *offerActivity;
+    UIActivityIndicatorView *userActivity;
 }
 
 @synthesize index;
@@ -70,6 +72,7 @@
 }
 
 -(void)create {
+//    NSLog(@"CGREct = (%f, %f, %f, %f)", self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.frame.size.height);
     UIDevice *currentDevice = [UIDevice currentDevice];
 //    offerName = @"Pompe";
 //    offerPlace = @"Creil, France";
@@ -106,7 +109,7 @@
     offerImageView = [[UIImageView alloc] initWithFrame:sizeOfferImageView];
 //    [offerImageView setBackgroundColor:[UIColor magentaColor]];
 //    [offerImageView setImage:offerImage];
-    [offerImageView setImage:elementImage];
+//    [offerImageView setImage:elementImage];
 //    NSString *offerUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].offerImagePrefix, index, offerImageString];
     NSString *offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, index, offerImageString];
 /*    NSURL *offerUrlImage = [NSURL URLWithString:offerUrlString];
@@ -120,6 +123,23 @@
     [offerImageView setImage:offerImageFromUrl];*/
     [self getImage:offerUrlString andType:0];
     [self addSubview:offerImageView];
+    
+    CGRect sizeActivity;
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        sizeActivity.size.height = sizeActivity.size.width = 20;
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        sizeActivity.size.height = sizeActivity.size.width = 40;
+    }
+    sizeActivity.origin.x = offerImageView.frame.origin.x + (offerImageView.frame.size.width - sizeActivity.size.width) / 2;
+    sizeActivity.origin.y = offerImageView.frame.origin.y + (offerImageView.frame.size.height - sizeActivity.size.height) / 2;
+    
+    offerActivity = [[UIActivityIndicatorView alloc] initWithFrame:sizeActivity];
+    [offerActivity setColor:[UIColor blackColor]];
+    [self addSubview:offerActivity];
+    if (!offerImageView.image) {
+        [offerActivity startAnimating];
+    }
     
     elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"icon_star%@", [UserDataSingleton sharedSingleton].Sufix]];
     CGRect sizeRatingView;
@@ -197,8 +217,9 @@
     sizeUserImage.size.height = sizeUserImage.size.width = offerNameLabel.frame.size.height * 2;*/
     
     userImageView = [[UIImageView alloc] initWithFrame:sizeUserImage];
+    [userImageView setContentMode:UIViewContentModeScaleToFill];
 //    [userImageView setBackgroundColor:[UIColor magentaColor]];
-    [userImageView setImage:elementImage];
+//    [userImageView setImage:elementImage];
     NSString *userUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].userImagePrefix, userId, userImageString];
 /*    NSURL *userUrlImage = [NSURL URLWithString:userUrlString];
     NSData *userDataImage = [NSData dataWithContentsOfURL:userUrlImage];
@@ -212,6 +233,17 @@
     [self getImage:userUrlString andType:1];
     [self addSubview:userImageView];
     
+    sizeActivity.origin.x = userImageView.frame.origin.x + (userImageView.frame.size.width - sizeActivity.size.width) / 2;
+    sizeActivity.origin.y = userImageView.frame.origin.y + (userImageView.frame.size.height - sizeActivity.size.height) / 2;
+    
+    userActivity = [[UIActivityIndicatorView alloc] initWithFrame:sizeActivity];
+    [userActivity setColor:[UIColor blackColor]];
+    [self addSubview:userActivity];
+    if (!userImageView.image) {
+        [userActivity startAnimating];
+    }
+//    [userImageView setImage:elementImage];
+
     
     UIImageView *userRoundImage = [[UIImageView alloc] initWithFrame:sizeUserImage];
     [userRoundImage setImage:[UIImage imageNamed:[NSString stringWithFormat:@"user%@", [UserDataSingleton sharedSingleton].Sufix]]];
@@ -272,7 +304,7 @@
     sizeSeparatorView.origin.y = self.frame.size.height - sizeSeparatorView.size.height;
     
     UIView *separatorView = [[UIView alloc] initWithFrame:sizeSeparatorView];
-    [separatorView setBackgroundColor:[UIColor lightGrayColor]];
+    [separatorView setBackgroundColor:[UIColor colorWithRed:196.0f/255.0f green:196.0f/255.0f blue:196.0f/255.0f alpha:1.0f]];
     [self addSubview:separatorView];
 }
 
@@ -307,8 +339,10 @@
     UIImage *image = [[APICache sharedAPICache] objectForKey:imageString];
     if (image) {
         if (type == 0) {
+            [offerActivity stopAnimating];
             [offerImageView setImage:image];
         } else if (type == 1) {
+            [userActivity stopAnimating];
             [userImageView setImage:image];
         }
     } else {
@@ -320,18 +354,26 @@
         if (type == 0) {
             offerUrlData = [NSData dataWithContentsOfURL:url];
             if (offerUrlData) {
+                [offerActivity stopAnimating];
                 [offerImageView setImage:[UIImage imageWithData:offerUrlData]];
                 [[APICache sharedAPICache] setObject:[UIImage imageWithData:offerUrlData] forKey:imageString];
             } else {
-                [offerImageView setImage:[UIImage imageNamed:[NSString stringWithFormat:@"placeholder_offer%@", [UserDataSingleton sharedSingleton].Sufix]]];
+                [offerActivity stopAnimating];
+                UIImage *placeholderImage = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
+                [offerImageView setImage:placeholderImage];
+                [[APICache sharedAPICache] setObject:placeholderImage forKey:imageString];
             }
         } else if (type == 1) {
             userUrlData = [NSData dataWithContentsOfURL:url];
             if (userUrlData) {
+                [userActivity stopAnimating];
                 [userImageView setImage:[UIImage imageWithData:userUrlData]];
                 [[APICache sharedAPICache] setObject:[UIImage imageWithData:userUrlData] forKey:imageString];
             } else {
-                [userImageView setImage:[UIImage imageNamed:[NSString stringWithFormat:@"placeholder_user%@", [UserDataSingleton sharedSingleton].Sufix]]];
+                [userActivity stopAnimating];
+                UIImage *placeholderImage = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_user%@", [UserDataSingleton sharedSingleton].Sufix]];
+                [userImageView setImage:placeholderImage];
+                [[APICache sharedAPICache] setObject:placeholderImage forKey:imageString];
             }
         }
     }];

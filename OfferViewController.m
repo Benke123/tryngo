@@ -35,6 +35,9 @@
     NSString *indexCategory;
     NSString *indexSubCategory;
     UIButton *menuButton;
+    int countCell;
+    int countCellInPage;
+    UIButton *moreButton;
 }
 @end
 
@@ -66,6 +69,8 @@
     cityName = @"";
     indexCategory = @"";
     indexSubCategory = @"";
+    countCell = 0;
+    countCellInPage = 20;
     [self create];
     isLocation = false;
     locationManager = [[CLLocationManager alloc]init];
@@ -129,6 +134,11 @@
                          [titleLabel setText:@"  Near me"];
                      } else {
                          [titleLabel setText:[NSString stringWithFormat:@"  Near me in %@", cityName]];
+                     }
+                     if (countOffer > countCellInPage) {
+                         countCell = countCellInPage;
+                     } else {
+                         countCell = countOffer;
                      }
                      [offerTableView reloadData];
                      [activity stopAnimating];
@@ -218,7 +228,7 @@
         sizeTitleView.size.height = 50;
     }
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        sizeTitleView.size.height = 100;
+        sizeTitleView.size.height = 80;
     }
     UIView *titleView = [[UIView alloc] initWithFrame:sizeTitleView];
     [titleView setBackgroundColor:[UIColor colorWithRed:77.0f/255.0f green:178.0f/255.0f blue:237.0f/255.0f alpha:1.0f]];
@@ -279,9 +289,35 @@
     offerTableView.separatorColor = [UIColor whiteColor];
     [self.view addSubview:offerTableView];
     
+    CGRect sizeMoreButton = titleView.frame;
+    sizeMoreButton.origin.y = self.view.frame.size.height - sizeMoreButton.size.height;
+    
+    moreButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [moreButton setFrame:sizeMoreButton];
+    [moreButton setBackgroundColor:[UIColor colorWithRed:196.0f/255.0f green:196.0f/255.0f blue:196.0f/255.0f alpha:1.0f]];
+    [moreButton setTitle:@"Browse more" forState:UIControlStateNormal];
+    [moreButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [moreButton.titleLabel setFont:titleLabel.font];
+    [moreButton addTarget:self action:@selector(pressMoreButton) forControlEvents:UIControlEventTouchUpInside];
+    [moreButton setHidden:YES];
+    [self.view addSubview:moreButton];
+    
+    UIImage *elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"top_image%@", [UserDataSingleton sharedSingleton].Sufix]];
+    
+    CGRect sizeTopImageView;
+    sizeTopImageView.size.height = elementImage.size.height / 2;
+    sizeTopImageView.size.width = elementImage.size.width / 2;//scrollView.frame.size.width;
+    sizeTopImageView.origin.x = 0;
+    sizeTopImageView.origin.y = -sizeTopImageView.size.height;
+    
+    UIImageView *topImageView = [[UIImageView alloc] initWithFrame:sizeTopImageView];
+    [topImageView setImage:elementImage];
+    [offerTableView addSubview:topImageView];
+    
     CGRect sizeSearchView;
     sizeSearchView.origin.x = 0;
     sizeSearchView.origin.y = offerTableView.frame.origin.y + offerTableView.frame.size.height;
+//    sizeSearchView.origin.y = moreButton.frame.origin.y + moreButton.frame.size.height;
     sizeSearchView.size.width = self.view.frame.size.width;
     sizeSearchView.size.height = self.view.frame.size.height / 2;
     searchView = [[UIView alloc] initWithFrame:sizeSearchView];
@@ -525,6 +561,8 @@
         button.tag = 1;
         CGRect sizeNewTableView = offerTableView.frame;
         sizeNewTableView.size.height -= searchView.frame.size.height;
+        CGRect sizeNewMoreButton = searchView.frame;
+        sizeNewMoreButton.origin.y -= searchView.frame.size.height;
         CGRect sizeNewSearchView = searchView.frame;
         sizeNewSearchView.origin.y -= sizeNewSearchView.size.height;
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^(void){
@@ -535,6 +573,8 @@
         button.tag = 0;
         CGRect sizeNewTableView = offerTableView.frame;
         sizeNewTableView.size.height += searchView.frame.size.height;
+        CGRect sizeNewMoreButton = searchView.frame;
+        sizeNewMoreButton.origin.y += searchView.frame.size.height;
         CGRect sizeNewSearchView = searchView.frame;
         sizeNewSearchView.origin.y += sizeNewSearchView.size.height;
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^(void){
@@ -581,6 +621,26 @@
     }
 }
 
+-(void)pressMoreButton {
+/*    [moreButton setHidden:YES];
+    CGRect sizeNewTableFrame = offerTableView.frame;
+    sizeNewTableFrame.size.height += moreButton.frame.size.height;
+    [offerTableView setFrame:sizeNewTableFrame];*/
+    int countOffer = 0;
+    @try {
+        countOffer = [offersArray count];
+    } @catch (NSException *e) {
+        countOffer = 0;
+    }
+    if (countOffer > countCell) {
+        countCell += countCellInPage;
+        if (countOffer < countCell) {
+            countCell = countOffer;
+        }
+    }
+    [offerTableView reloadData];
+}
+
 -(void)getUserLocation{
     [locationManager startUpdatingLocation];
 }
@@ -623,14 +683,16 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    int countOffer = 0;
+/*    int countOffer = 0;
     @try {
         countOffer = [offersArray count];
     } @catch (NSException *e) {
         countOffer = 0;
     }
 
-    return countOffer;
+    return countOffer;*/
+    NSLog(@"countCell = %i", countCell);
+    return countCell;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -663,13 +725,27 @@
     cell.cost = [offerDictionary objectForKey:@"cost"];
     cell.costUnit = [offerDictionary objectForKey:@"cost_unit"];
     cell.rating = @"0";
+    if ((indexPath.item == countCell - 1) && (countCell < [offersArray count])) {
+        [self pressMoreButton];
+/*        [moreButton setHidden:NO];
+        CGRect sizeNewTableFrame = offerTableView.frame;
+//        sizeNewTableFrame.size.height -= moreButton.frame.size.height;
+        sizeNewTableFrame.size.height = moreButton.frame.origin.y - offerTableView.frame.origin.y;
+        [offerTableView setFrame:sizeNewTableFrame];*/
+    }
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView
 didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    CATransition *transition = [CATransition animation];
+    transition.duration = 0.3;
+    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    transition.type = kCATransitionPush;
+    transition.subtype = kCATransitionFromRight;
+    [self.view.window.layer addAnimation:transition forKey:nil];
     OneOfferViewController *oneOfferViewController = [[OneOfferViewController alloc] initWithIndex:[[offersArray objectAtIndex:indexPath.row] objectForKey:@"id"]];
-    [self presentViewController:oneOfferViewController animated:YES completion:nil];
+    [self presentViewController:oneOfferViewController animated:NO completion:nil];
 }
 
 - (void) keyboardWillShow:(NSNotification *)note {

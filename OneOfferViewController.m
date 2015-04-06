@@ -9,8 +9,9 @@
 #import "OneOfferViewController.h"
 #import "UserDataSingleton.h"
 #import "FONT.h"
+#import "OfferImageView.h"
 
-@interface OneOfferViewController () {
+@interface OneOfferViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, OfferImageViewDelegate> {
     UIScrollView *scrollView;
     UIDevice *currentDevice;
     NSDictionary *offerDictionary;
@@ -21,10 +22,13 @@
     UIButton *leftArrowButton;
     UIButton *rightArrowButton;
     UIImageView *offerImageView;
+    UIButton *offerImageButton;
     UIImageView *userImageView;
     NSURL  *url;
     NSData *offerUrlData;
     NSData *userUrlData;
+    UICollectionView *offerCollectionView;
+    OfferImageView *bigOfferImageView;
 }
 
 @end
@@ -139,7 +143,7 @@
         sizeTitleView.size.height = 50;
     }
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        sizeTitleView.size.height = 100;
+        sizeTitleView.size.height = 80;
     }
     UIView *titleView = [[UIView alloc] initWithFrame:sizeTitleView];
     [titleView setBackgroundColor:[UIColor colorWithRed:77.0f/255.0f green:178.0f/255.0f blue:237.0f/255.0f alpha:1.0f]];
@@ -211,6 +215,18 @@
     scrollView = [[UIScrollView alloc] initWithFrame:sizeScrollView];
     [self.view addSubview:scrollView];
     
+/*    elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"top_image%@", [UserDataSingleton sharedSingleton].Sufix]];
+    
+    CGRect sizeTopImageView;
+    sizeTopImageView.size.height = elementImage.size.height / 2;
+    sizeTopImageView.size.width = elementImage.size.width / 2;//scrollView.frame.size.width;
+    sizeTopImageView.origin.x = 0;
+    sizeTopImageView.origin.y = -sizeTopImageView.size.height;
+    
+    UIImageView *topImageView = [[UIImageView alloc] initWithFrame:sizeTopImageView];
+    [topImageView setImage:elementImage];
+    [scrollView addSubview:topImageView];*/
+    
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         buttonFont = [FONT regularFontWithSize:24];
     }
@@ -241,11 +257,11 @@
     while (imagesString) {
         range = [imagesString rangeOfString:@","];
         if (range.length == 0) {
-            [offerImagesArray addObject:imagesString];
+            [offerImagesArray addObject:[NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, imagesString]];
             imagesString = nil;
         } else {
 //            NSString *currentString = [imagesString substringToIndex:range.location];
-            NSString *currentString = [NSString stringWithFormat:@"%@/%@/%@&w=%f&h=%f&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [imagesString substringToIndex:range.location], self.view.frame.size.width / 2, self.view.frame.size.width / 2];
+            NSString *currentString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [imagesString substringToIndex:range.location]];
             [offerImagesArray addObject:currentString];
             imagesString = [imagesString substringFromIndex:(range.location + 1)];
         }
@@ -274,16 +290,32 @@
     NSString *offerUrlString = [offerImagesArray objectAtIndex:0];//[NSString stringWithFormat:@"%@/%@/%@&w=%f&h=%f&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:0], sizeOfferImageView.size.width, sizeOfferImageView.size.height];
     [offerImageView setContentMode:UIViewContentModeCenter];
     [offerImageView setContentMode:UIViewContentModeScaleAspectFit];
-    [self getImage:offerUrlString andType:0];
+//    [self getImage:offerUrlString andType:0];
+    [offerImageView setImage:[[APICache sharedAPICache] objectForKey:offerUrlString]];
     [scrollView addSubview:offerImageView];
+    
+    offerImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [offerImageButton setFrame:sizeOfferImageView];
+    [offerImageButton addTarget:self action:@selector(offerImageTap) forControlEvents:UIControlEventTouchUpInside];
+    [offerImageButton setTag:0];
+    [scrollView addSubview:offerImageButton];
     
     CGRect sizeCollectionView = sizeOfferImageView;
     sizeCollectionView.origin.y += sizeOfferImageView.size.height + 5;
     sizeCollectionView.size.height /= 3;
-    
-    
-    
-    
+    UICollectionViewFlowLayout *layot = [[UICollectionViewFlowLayout alloc] init];
+    [layot setScrollDirection:UICollectionViewScrollDirectionHorizontal];
+/*    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    NSBlockOperation *fetchStreamOperation = [[NSBlockOperation alloc] init];
+    [fetchStreamOperation addExecutionBlock:^{*/
+        offerCollectionView = [[UICollectionView alloc] initWithFrame:sizeCollectionView collectionViewLayout:layot];
+        [offerCollectionView setBackgroundColor:[UIColor clearColor]];
+        offerCollectionView.delegate = self;
+        offerCollectionView.dataSource = self;
+        [offerCollectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"Cell"];
+        [scrollView addSubview:offerCollectionView];
+/*    }];
+    [queue addOperation:fetchStreamOperation];*/
     
     NSMutableArray *costStringArray = [[NSMutableArray alloc] init];
     NSString *costString = [offerDictionary objectForKey:@"cost"];
@@ -382,8 +414,10 @@
     sizeUserImageView.size.width = elementImage.size.width - 20;
     
     userImageView = [[UIImageView alloc] initWithFrame:sizeUserImageView];
+    [userImageView setContentMode:UIViewContentModeScaleToFill];
     NSString *userUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].userImagePrefix, [offerDictionary objectForKey:@"user_id"], [offerDictionary objectForKey:@"user_photo"]];
-    [self getImage:userUrlString andType:1];
+//    [self getImage:userUrlString andType:1];
+    [userImageView setImage:[[APICache sharedAPICache] objectForKey:userUrlString]];
     [scrollView addSubview:userImageView];
     
     UIImageView *userRoundImage = [[UIImageView alloc] initWithFrame:sizeUserImageView];
@@ -612,7 +646,7 @@
         space = 10;
         buttonFont = [FONT regularFontWithSize:37];
     }
-    float widthDay = [@"Wed" sizeWithAttributes:@{NSFontAttributeName:buttonFont}].width;
+    float widthDay = [@"Moni" sizeWithAttributes:@{NSFontAttributeName:buttonFont}].width;
     
     CGRect sizeDayLabel;
     sizeDayLabel.origin.x = (daysView.frame.size.width - widthDay * 7 - space * 6) / 2;
@@ -1082,7 +1116,7 @@
 }
 
 -(void)getImage:(NSString *)imageString andType:(int)type {
-        if (type == 0) {
+    if (type == 0) {
      offerImageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_load_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
      } else if (type == 1) {
      userImageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_user%@", [UserDataSingleton sharedSingleton].Sufix]];
@@ -1123,6 +1157,30 @@
     }
 }
 
+-(void)getImage:(NSString *)imageString andView:(UIImageView *)imageView {
+    imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_load_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
+    
+    UIImage *image = [[APICache sharedAPICache] objectForKey:imageString];
+    if (image) {
+        [imageView setImage:image];
+    } else {
+        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+        NSBlockOperation *fetchStreamOperation = [[NSBlockOperation alloc] init];
+        [fetchStreamOperation addExecutionBlock:^{
+            url = [NSURL URLWithString:imageString];
+            //            urlData = [NSData dataWithContentsOfURL:url];
+            NSData *urlData = [NSData dataWithContentsOfURL:url];
+                if (urlData) {
+                    [imageView setImage:[UIImage imageWithData:urlData]];
+                    [[APICache sharedAPICache] setObject:[UIImage imageWithData:urlData] forKey:imageString];
+                } else {
+                    [imageView setImage:[UIImage imageNamed:[NSString stringWithFormat:@"placeholder_offer%@", [UserDataSingleton sharedSingleton].Sufix]]];
+                }
+        }];
+        [queue addOperation:fetchStreamOperation];
+    }
+}
+
 -(void)pressArrowButton:(UIButton *)button {
     if (button.tag == leftArrowButton.tag) {
         if (button.tag == 0) {
@@ -1157,7 +1215,13 @@
 }
 
 -(void)pressBackButton {
-    [self dismissViewControllerAnimated:YES completion:nil];
+    CATransition *transition = [CATransition animation];
+    transition.duration = 0.3;
+    transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    transition.type = kCATransitionPush;
+    transition.subtype = kCATransitionFromLeft;
+    [self.view.window.layer addAnimation:transition forKey:nil];
+    [self dismissViewControllerAnimated:NO completion:nil];
 }
 
 -(void)pressBookButton {
@@ -1165,6 +1229,80 @@
     NSLog(@"book url = %@", [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]]);
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]]];
 }
+
+- (void)offerImageTap {
+    NSLog(@"button.tag = %ld", (long)offerImageButton.tag);
+    bigOfferImageView = [[OfferImageView alloc] initWithFrame:self.view.frame andImageName:[offerImagesArray objectAtIndex:offerImageButton.tag]];
+    bigOfferImageView.delegate = self;
+    [self.view addSubview:bigOfferImageView];
+}
+
+-(void)removeOfferImage {
+    for (UIView *subview in [bigOfferImageView subviews]) {
+        [subview removeFromSuperview];
+    }
+    [bigOfferImageView removeFromSuperview];
+    bigOfferImageView = nil;
+}
+
+#pragma mark - UICollectionView Datasource
+
+- (NSInteger)collectionView:(UICollectionView *)view numberOfItemsInSection:(NSInteger)section {
+    return offerImagesArray.count;
+}
+
+- (NSInteger)numberOfSectionsInCollectionView: (UICollectionView *)collectionView {
+    return 1;
+}
+
+- (UICollectionViewCell *)collectionView:(UICollectionView *)cv cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+/*//    UICollectionViewCell *cell = [cv dequeueReusableCellWithReuseIdentifier:@"Cell" forIndexPath:indexPath];
+    OfferCollectionViewCell *offerCollectionViewCell = [cv dequeueReusableCellWithReuseIdentifier:@"Cell" forIndexPath:indexPath];
+    [offerCollectionViewCell setBackgroundColor:[UIColor whiteColor]];
+    
+    UIImageView *offerCellImageView = [[UIImageView alloc] init];
+    [offerCollectionViewCell setBackgroundColor:[UIColor clearColor]];
+    [offerCollectionViewCell addSubview:offerCellImageView];
+    [self getImage:[offerImagesArray objectAtIndex:indexPath.item] andView:offerCellImageView];
+    return offerCollectionViewCell;*/
+    
+    UICollectionViewCell *cell = [cv dequeueReusableCellWithReuseIdentifier:@"Cell" forIndexPath:indexPath];
+    
+    CGRect sizeImage = cell.frame;
+    sizeImage.origin.x = sizeImage.origin.y = 0;
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:sizeImage];
+    [self getImage:[offerImagesArray objectAtIndex:indexPath.item] andView:imageView];
+    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [cell addSubview:imageView];
+    
+    return cell;
+}
+
+#pragma mark - UICollectionViewDelegate
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    // TODO: Select Item
+    [offerImageView setImage:[[APICache sharedAPICache] objectForKey:[offerImagesArray objectAtIndex:indexPath.item]]];
+    [offerImageButton setTag:indexPath.item];
+}
+- (void)collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath {
+    // TODO: Deselect item
+}
+
+#pragma mark – UICollectionViewDelegateFlowLayout
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
+/*    NSString *searchTerm = self.searches[indexPath.section]; FlickrPhoto *photo =
+    self.searchResults[searchTerm][indexPath.row];
+    CGSize retval = photo.thumbnail.size.width > 0 ? photo.thumbnail.size : CGSizeMake(100, 100);
+    retval.height += 35; retval.width += 35; return retval;*/
+    return CGSizeMake(offerCollectionView.frame.size.height, collectionView.frame.size.height);
+}
+
+/*- (UIEdgeInsets)collectionView:
+(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
+    return UIEdgeInsetsMake(50, 20, 50, 20);
+}*/
 
 - (void)didReceiveMemoryWarning
 {
