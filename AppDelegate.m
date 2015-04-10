@@ -23,7 +23,7 @@
     }
     [UserDataSingleton sharedSingleton].offerImagePrefix = @"https://www.tryngo.ch/uploads/objects/";
     [UserDataSingleton sharedSingleton].thumbImagePrefix = @"https://www.tryngo.ch/timthumb.php?src=https://www.tryngo.ch/uploads/objects";
-    [UserDataSingleton sharedSingleton].userImagePrefix = @"https://www.tryngo.ch/uploads/users/thumb/";
+    [UserDataSingleton sharedSingleton].userImagePrefix = @"https://www.tryngo.ch/timthumb.php?src=https://www.tryngo.ch/uploads/users/thumb/";
     
     OfferViewController *offerViewController = [[OfferViewController alloc] init];
     self.window.rootViewController = offerViewController;

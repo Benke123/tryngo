@@ -229,8 +229,10 @@
     sizeUserImage.origin.y = offerImageView.frame.origin.y + offerImageView.frame.size.height - sizeUserImage.size.height;
     
     userImageView = [[UIImageView alloc] initWithFrame:sizeUserImage];
-    [userImageView setContentMode:UIViewContentModeScaleToFill];
-    NSString *userUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].userImagePrefix, userId, userImageString];
+//    [userImageView setContentMode:UIViewContentModeScaleToFill];
+//    [userImageView setContentMode:UIViewContentModeScaleAspectFit];
+//    [userImageView setContentMode:UIViewContentModeScaleAspectFill];
+    NSString *userUrlString = [NSString stringWithFormat:@"%@%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].userImagePrefix, userId, userImageString];
     sizeActivity.origin.x = userImageView.frame.origin.x + (userImageView.frame.size.width - sizeActivity.size.width) / 2;
     sizeActivity.origin.y = userImageView.frame.origin.y + (userImageView.frame.size.height - sizeActivity.size.height) / 2;
     

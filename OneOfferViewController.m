@@ -475,7 +475,7 @@
     
     userImageView = [[UIImageView alloc] initWithFrame:sizeUserImageView];
     [userImageView setContentMode:UIViewContentModeScaleToFill];
-    NSString *userUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].userImagePrefix, [offerDictionary objectForKey:@"user_id"], [offerDictionary objectForKey:@"user_photo"]];
+    NSString *userUrlString = [NSString stringWithFormat:@"%@%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].userImagePrefix, [offerDictionary objectForKey:@"user_id"], [offerDictionary objectForKey:@"user_photo"]];
 //    [self getImage:userUrlString andType:1];
     [userImageView setImage:[[APICache sharedAPICache] objectForKey:userUrlString]];
     [scrollView addSubview:userImageView];
