@@ -29,6 +29,7 @@
     NSData *userUrlData;
     UICollectionView *offerCollectionView;
     OfferImageView *bigOfferImageView;
+    UIActivityIndicatorView *offerActivity;
 }
 
 @end
@@ -234,7 +235,7 @@
         buttonFont = [FONT regularFontWithSize:42];
     }
     
-    NSString *offerName = [offerDictionary objectForKey:@"title"];
+    NSString *offerName = [self encode:[offerDictionary objectForKey:@"title"]];
     CGSize sizeString = [offerName sizeWithAttributes:@{NSFontAttributeName: buttonFont}];
     CGRect sizeOfferNameLabel;
     sizeOfferNameLabel.size.height = sizeString.height;
@@ -257,11 +258,23 @@
     while (imagesString) {
         range = [imagesString rangeOfString:@","];
         if (range.length == 0) {
-            [offerImagesArray addObject:[NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, imagesString]];
+/*            if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+                [offerImagesArray addObject:[NSString stringWithFormat:@"%@/%@/%@&w=50&h=50&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, imagesString]];
+            }
+            if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+                [offerImagesArray addObject:[NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, imagesString]];
+            }*/
+            [offerImagesArray addObject:imagesString];
             imagesString = nil;
         } else {
 //            NSString *currentString = [imagesString substringToIndex:range.location];
-            NSString *currentString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [imagesString substringToIndex:range.location]];
+            NSString *currentString = [imagesString substringToIndex:range.location];
+ /*           if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+                currentString = [NSString stringWithFormat:@"%@/%@/%@&w=50&h=50&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [imagesString substringToIndex:range.location]];
+            }
+            if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+                currentString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [imagesString substringToIndex:range.location]];
+            }*/
             [offerImagesArray addObject:currentString];
             imagesString = [imagesString substringFromIndex:(range.location + 1)];
         }
@@ -287,11 +300,58 @@
     
     offerImageView = [[UIImageView alloc] initWithFrame:sizeOfferImageView];
 //    NSString *offerUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].offerImagePrefix, offerIndex, [offerImagesArray objectAtIndex:0]];
-    NSString *offerUrlString = [offerImagesArray objectAtIndex:0];//[NSString stringWithFormat:@"%@/%@/%@&w=%f&h=%f&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:0], sizeOfferImageView.size.width, sizeOfferImageView.size.height];
+    NSString *offerUrlString;// = [offerImagesArray objectAtIndex:0];//[NSString stringWithFormat:@"%@/%@/%@&w=%f&h=%f&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:0], sizeOfferImageView.size.width, sizeOfferImageView.size.height];
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:0]];
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=200&h=200&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:0]];
+    }
     [offerImageView setContentMode:UIViewContentModeCenter];
     [offerImageView setContentMode:UIViewContentModeScaleAspectFit];
 //    [self getImage:offerUrlString andType:0];
-    [offerImageView setImage:[[APICache sharedAPICache] objectForKey:offerUrlString]];
+//    [offerImageView setImage:[[APICache sharedAPICache] objectForKey:offerUrlString]];
+    CGRect sizeActivity;
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        sizeActivity.size.height = sizeActivity.size.width = 20;
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        sizeActivity.size.height = sizeActivity.size.width = 40;
+    }
+    sizeActivity.origin.x = offerImageView.frame.origin.x + (offerImageView.frame.size.width - sizeActivity.size.width) / 2;
+    sizeActivity.origin.y = offerImageView.frame.origin.y + (offerImageView.frame.size.height - sizeActivity.size.height) / 2;
+    offerActivity = [[UIActivityIndicatorView alloc] initWithFrame:sizeActivity];
+    [offerActivity setColor:[UIColor blackColor]];
+    [scrollView addSubview:offerActivity];
+    [self loadBigOfferImage:offerUrlString];
+/*    [offerActivity startAnimating];
+    UIImage *offerImage = [[APICache sharedAPICache] objectForKey:offerUrlString];
+    if (offerImage) {
+        [offerImageView setImage:offerImage];
+        [offerActivity stopAnimating];
+    } else {
+        //        [self getImage:offerUrlString];
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            
+            UIImage *postImage = [UIImage  imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:offerUrlString]]];
+            
+            if (postImage) {
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:postImage forKey:offerUrlString];
+                    [offerImageView setImage:postImage];
+                    [offerActivity stopAnimating];
+                });
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:elementImage forKey:offerUrlString];
+                    [offerImageView setImage:elementImage];
+                    [offerActivity stopAnimating];
+                });
+            }
+        });
+    }*/
+
     [scrollView addSubview:offerImageView];
     
     offerImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -379,7 +439,7 @@
     }
     
     float widthOfferDescription = scrollView.frame.size.width - offerImageView.frame.origin.x * 2;
-    NSString *offerDescription = [offerDictionary objectForKey:@"description"];
+    NSString *offerDescription = [self encode:[offerDictionary objectForKey:@"description"]];
     CGRect sizeOfferDescriptionLabel = [offerDescription boundingRectWithSize:CGSizeMake(widthOfferDescription, 1000)
                                                                       options:NSStringDrawingUsesLineFragmentOrigin
                                                                    attributes:@{NSFontAttributeName:buttonFont}
@@ -430,7 +490,7 @@
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         buttonFont = [FONT regularFontWithSize:26];
     }
-    NSString *userName = [offerDictionary objectForKey:@"username"];
+    NSString *userName = [self encode:[offerDictionary objectForKey:@"username"]];
     sizeString = [userName sizeWithAttributes:@{NSFontAttributeName: buttonFont}];
     
     CGRect sizeUserNameLabel;
@@ -479,7 +539,7 @@
     sizePlaceLabel.size.width = scrollView.frame.size.width - sizePlaceLabel.origin.x - userImageView.frame.origin.x;
     
     UILabel *placeLabel = [[UILabel alloc] initWithFrame:sizePlaceLabel];
-    [placeLabel setText:[offerDictionary objectForKey:@"location"]];
+    [placeLabel setText:[self encode:[offerDictionary objectForKey:@"location"]]];
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         [placeLabel setFont:[FONT regularFontWithSize:14]];
     }
@@ -1158,7 +1218,23 @@
 }
 
 -(void)getImage:(NSString *)imageString andView:(UIImageView *)imageView {
-    imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_load_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
+    UIImage *elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        UIImage *postImage = [UIImage  imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:imageString]]];
+        if (postImage) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[APICache sharedAPICache] setObject:postImage forKey:imageString];
+                [imageView setImage:postImage];
+            });
+        } else {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[APICache sharedAPICache] setObject:elementImage forKey:imageString];
+                [imageView setImage:elementImage];
+            });
+        }
+    });
+
+/*    imageView.image = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_load_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
     
     UIImage *image = [[APICache sharedAPICache] objectForKey:imageString];
     if (image) {
@@ -1178,6 +1254,37 @@
                 }
         }];
         [queue addOperation:fetchStreamOperation];
+    }*/
+}
+
+-(void)loadBigOfferImage:(NSString *)offerUrlString {
+    UIImage *elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
+    [offerActivity startAnimating];
+    UIImage *offerImage = [[APICache sharedAPICache] objectForKey:offerUrlString];
+    if (offerImage) {
+        [offerImageView setImage:offerImage];
+        [offerActivity stopAnimating];
+    } else {
+        //        [self getImage:offerUrlString];
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            
+            UIImage *postImage = [UIImage  imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:offerUrlString]]];
+            
+            if (postImage) {
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:postImage forKey:offerUrlString];
+                    [offerImageView setImage:postImage];
+                    [offerActivity stopAnimating];
+                });
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:elementImage forKey:offerUrlString];
+                    [offerImageView setImage:elementImage];
+                    [offerActivity stopAnimating];
+                });
+            }
+        });
     }
 }
 
@@ -1225,14 +1332,16 @@
 }
 
 -(void)pressBookButton {
+    NSString *urlEncoded = [[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlEncoded]];
     NSLog(@"book string = %@", [NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]);
     NSLog(@"book url = %@", [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]]);
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]]];
+//    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]]];
 }
 
 - (void)offerImageTap {
     NSLog(@"button.tag = %ld", (long)offerImageButton.tag);
-    bigOfferImageView = [[OfferImageView alloc] initWithFrame:self.view.frame andImageName:[offerImagesArray objectAtIndex:offerImageButton.tag]];
+    bigOfferImageView = [[OfferImageView alloc] initWithFrame:self.view.frame andImageIndex:offerIndex andImageName:[offerImagesArray objectAtIndex:offerImageButton.tag]];
     bigOfferImageView.delegate = self;
     [self.view addSubview:bigOfferImageView];
 }
@@ -1243,6 +1352,12 @@
     }
     [bigOfferImageView removeFromSuperview];
     bigOfferImageView = nil;
+}
+
+-(NSString *)encode:(NSString *)string {
+    NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:string options:0];
+    NSString *decodedString = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
+    return decodedString;
 }
 
 #pragma mark - UICollectionView Datasource
@@ -1268,10 +1383,19 @@
     
     UICollectionViewCell *cell = [cv dequeueReusableCellWithReuseIdentifier:@"Cell" forIndexPath:indexPath];
     
+    NSString *currentString;
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        currentString = [NSString stringWithFormat:@"%@/%@/%@&w=50&h=50&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:indexPath.item]];
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        currentString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:indexPath.item]];
+    }
+    
     CGRect sizeImage = cell.frame;
     sizeImage.origin.x = sizeImage.origin.y = 0;
     UIImageView *imageView = [[UIImageView alloc] initWithFrame:sizeImage];
-    [self getImage:[offerImagesArray objectAtIndex:indexPath.item] andView:imageView];
+//    [self getImage:[offerImagesArray objectAtIndex:indexPath.item] andView:imageView];
+    [self getImage:currentString andView:imageView];
     imageView.contentMode = UIViewContentModeScaleAspectFit;
     [cell addSubview:imageView];
     
@@ -1282,9 +1406,19 @@
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
     // TODO: Select Item
-    [offerImageView setImage:[[APICache sharedAPICache] objectForKey:[offerImagesArray objectAtIndex:indexPath.item]]];
+    NSString *offerUrlString;
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:indexPath.item]];
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=200&h=200&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, offerIndex, [offerImagesArray objectAtIndex:indexPath.item]];
+    }
+//    [offerImageView setImage:[[APICache sharedAPICache] objectForKey:key]];
+//    [offerImageView setImage:[[APICache sharedAPICache] objectForKey:[offerImagesArray objectAtIndex:indexPath.item]]];
+    [self loadBigOfferImage:offerUrlString];
     [offerImageButton setTag:indexPath.item];
 }
+
 - (void)collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath {
     // TODO: Deselect item
 }

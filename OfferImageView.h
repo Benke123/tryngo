@@ -14,5 +14,5 @@
 
 @interface OfferImageView : UIView <UIWebViewDelegate>
 @property (nonatomic, weak) id <OfferImageViewDelegate> delegate;
-- (id)initWithFrame:(CGRect)frame andImageName:(NSString *)imageName;
+- (id)initWithFrame:(CGRect)frame andImageIndex:(NSString *)imageIndex andImageName:(NSString *)imageName;
 @end

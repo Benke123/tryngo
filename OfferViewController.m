@@ -29,7 +29,6 @@
     NSString *lngLocation;
     NSString *keyWord;
     NSString *cityName;
-    UILabel *titleLabel;
     BOOL isLocation;
     CategoryPopover *popupView;
     NSString *indexCategory;
@@ -86,6 +85,9 @@
 }
 
 -(void)getRequest {
+    countCell = 0;
+    [moreButton setTag:0];
+    [moreButton setHidden:YES];
     UIActivityIndicatorView *activity = [[UIActivityIndicatorView alloc] initWithFrame:
                                          CGRectMake((self.view.frame.size.width - 30)/2,
                                                     (self.view.frame.size.height - 30)/2,
@@ -121,6 +123,7 @@
              offersArray = [NSJSONSerialization JSONObjectWithData:data
                                                            options:kNilOptions
                                                              error:nil];
+             NSLog(@"offersArray = %@", offersArray);
              int countOffer = 0;
              @try {
                  countOffer = [offersArray count];
@@ -130,11 +133,6 @@
              if (countOffer > 0) {
                  dispatch_async(dispatch_get_main_queue(), ^{
 //                 [self create];
-                     if ([cityName isEqualToString:@""]) {
-                         [titleLabel setText:@"  Near me"];
-                     } else {
-                         [titleLabel setText:[NSString stringWithFormat:@"  Near me in %@", cityName]];
-                     }
                      if (countOffer > countCellInPage) {
                          countCell = countCellInPage;
                      } else {
@@ -145,9 +143,8 @@
                  });
              } else {
                  dispatch_async(dispatch_get_main_queue(), ^{
-                     [titleLabel setText:@"  Near me"];
                      UIAlertView *alertView = [[UIAlertView alloc]
-                                           initWithTitle:@"There is no offers here"
+                                           initWithTitle:@"Sorry, no listing available in this category."
                                            message:@""
                                            delegate:self cancelButtonTitle:@"Ok" otherButtonTitles:nil];
                      [alertView show];
@@ -238,7 +235,7 @@
     CGRect sizeMenuButton;
     sizeMenuButton.size.width = menuImage.size.width / 2;
     sizeMenuButton.size.height = menuImage.size.height / 2;
-    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         sizeMenuButton.origin.x = self.view.frame.size.width - sizeMenuButton.size.width - 5;
     }
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
@@ -252,23 +249,28 @@
     [menuButton addTarget:self action:@selector(pressMenuButton:) forControlEvents:UIControlEventTouchUpInside];
     [titleView addSubview:menuButton];
     
-    CGRect sizeTitleLabel = sizeTitleView;
-    sizeTitleLabel.origin.y = 0;
+    UIImage *elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"label_image%@", [UserDataSingleton sharedSingleton].Sufix]];
+    
+    CGRect sizeTitleLabel;
+/*    sizeTitleLabel.origin.y = 0;
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         sizeTitleLabel.size.width = sizeMenuButton.origin.x - 5;
     }
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         sizeTitleLabel.size.width = sizeMenuButton.origin.x - 30;
-    }
-    titleLabel = [[UILabel alloc] initWithFrame:sizeTitleLabel];
-    [titleLabel setText:@"  Near me"];
-    [titleLabel setTextColor:[UIColor whiteColor]];
+    }*/
+    sizeTitleLabel.size.height = elementImage.size.height / 2;
+    sizeTitleLabel.size.width = elementImage.size.width / 2;
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
-        [titleLabel setFont:[FONT regularFontWithSize:24]];
+        sizeTitleLabel.origin.x = 10;
     }
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        [titleLabel setFont:[FONT regularFontWithSize:42]];
+        sizeTitleLabel.origin.x = 20;
     }
+    sizeTitleLabel.origin.y = (titleView.frame.size.height - sizeTitleLabel.size.height) / 2;
+    
+    UIImageView *titleLabel = [[UIImageView alloc] initWithFrame:sizeTitleLabel];
+    [titleLabel setImage:elementImage];
     [titleView addSubview:titleLabel];
     
     CGRect sizeTableView;
@@ -297,16 +299,25 @@
     [moreButton setBackgroundColor:[UIColor colorWithRed:196.0f/255.0f green:196.0f/255.0f blue:196.0f/255.0f alpha:1.0f]];
     [moreButton setTitle:@"Browse more" forState:UIControlStateNormal];
     [moreButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [moreButton.titleLabel setFont:titleLabel.font];
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        [moreButton.titleLabel setFont:[FONT regularFontWithSize:24]];
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        [moreButton.titleLabel setFont:[FONT regularFontWithSize:42]];
+    }
     [moreButton addTarget:self action:@selector(pressMoreButton) forControlEvents:UIControlEventTouchUpInside];
     [moreButton setHidden:YES];
     [self.view addSubview:moreButton];
     
-    UIImage *elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"top_image%@", [UserDataSingleton sharedSingleton].Sufix]];
-    
+    elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"top_image%@", [UserDataSingleton sharedSingleton].Sufix]];
+    elementImage = [UIImage imageNamed:@"4.png"];
+    float scale = self.view.frame.size.width / elementImage.size.width;
+
     CGRect sizeTopImageView;
-    sizeTopImageView.size.height = elementImage.size.height / 2;
-    sizeTopImageView.size.width = elementImage.size.width / 2;//scrollView.frame.size.width;
+////    sizeTopImageView.size.height = elementImage.size.height / 2;
+////    sizeTopImageView.size.width = elementImage.size.width / 2;//scrollView.frame.size.width;
+    sizeTopImageView.size.width = self.view.frame.size.width;
+    sizeTopImageView.size.height = elementImage.size.height * scale;
     sizeTopImageView.origin.x = 0;
     sizeTopImageView.origin.y = -sizeTopImageView.size.height;
     
@@ -561,24 +572,26 @@
         button.tag = 1;
         CGRect sizeNewTableView = offerTableView.frame;
         sizeNewTableView.size.height -= searchView.frame.size.height;
-        CGRect sizeNewMoreButton = searchView.frame;
+        CGRect sizeNewMoreButton = moreButton.frame;
         sizeNewMoreButton.origin.y -= searchView.frame.size.height;
         CGRect sizeNewSearchView = searchView.frame;
         sizeNewSearchView.origin.y -= sizeNewSearchView.size.height;
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^(void){
             [offerTableView setFrame:sizeNewTableView];
+            [moreButton setFrame:sizeNewMoreButton];
             [searchView setFrame:sizeNewSearchView];
         } completion:nil];
     } else {
         button.tag = 0;
         CGRect sizeNewTableView = offerTableView.frame;
         sizeNewTableView.size.height += searchView.frame.size.height;
-        CGRect sizeNewMoreButton = searchView.frame;
+        CGRect sizeNewMoreButton = moreButton.frame;
         sizeNewMoreButton.origin.y += searchView.frame.size.height;
         CGRect sizeNewSearchView = searchView.frame;
         sizeNewSearchView.origin.y += sizeNewSearchView.size.height;
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^(void){
             [offerTableView setFrame:sizeNewTableView];
+            [moreButton setFrame:sizeNewMoreButton];
             [searchView setFrame:sizeNewSearchView];
         } completion:nil];
     }
@@ -622,10 +635,10 @@
 }
 
 -(void)pressMoreButton {
-/*    [moreButton setHidden:YES];
+    [moreButton setHidden:YES];
     CGRect sizeNewTableFrame = offerTableView.frame;
     sizeNewTableFrame.size.height += moreButton.frame.size.height;
-    [offerTableView setFrame:sizeNewTableFrame];*/
+    [offerTableView setFrame:sizeNewTableFrame];
     int countOffer = 0;
     @try {
         countOffer = [offersArray count];
@@ -643,6 +656,10 @@
 
 -(void)getUserLocation{
     [locationManager startUpdatingLocation];
+//    [locationManager requestWhenInUseAuthorization];
+    if (currentDevice.userInterfaceIdiom != UIUserInterfaceIdiomPad) {
+        [locationManager requestAlwaysAuthorization];
+    }
 }
 
 -(void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
@@ -691,7 +708,6 @@
     }
 
     return countOffer;*/
-    NSLog(@"countCell = %i", countCell);
     return countCell;
 }
 
@@ -711,27 +727,26 @@
         cellFrame.size.height = tableView.rowHeight;
         cell = [[OfferTableViewCell alloc] initWithFrame:cellFrame];
     }
-    
 //    cell.textLabel.text = [students objectAtIndex:indexPath.row];
     NSDictionary *offerDictionary = [offersArray objectAtIndex:indexPath.row];
     cell.index = [offerDictionary objectForKey:@"id"];
     cell.offerImageString = [offerDictionary objectForKey:@"image"];
-    cell.offerName = [offerDictionary objectForKey:@"title"];
-    cell.offerPlace = [offerDictionary objectForKey:@"location"];
+    cell.offerName = [self encode:[offerDictionary objectForKey:@"title"]];
+    cell.offerPlace = [self encode:[offerDictionary objectForKey:@"location"]];
     cell.userImageString = [offerDictionary objectForKey:@"user_photo"];
     cell.userId = [offerDictionary objectForKey:@"user_id"];
-    cell.userName = [offerDictionary objectForKey:@"username"];
+    cell.userName = [self encode:[offerDictionary objectForKey:@"username"]];
 //    cell.price = [offerDictionary objectForKey:@"cost"];
     cell.cost = [offerDictionary objectForKey:@"cost"];
     cell.costUnit = [offerDictionary objectForKey:@"cost_unit"];
     cell.rating = @"0";
     if ((indexPath.item == countCell - 1) && (countCell < [offersArray count])) {
-        [self pressMoreButton];
-/*        [moreButton setHidden:NO];
+//        [self pressMoreButton];
+        [moreButton setHidden:NO];
         CGRect sizeNewTableFrame = offerTableView.frame;
 //        sizeNewTableFrame.size.height -= moreButton.frame.size.height;
         sizeNewTableFrame.size.height = moreButton.frame.origin.y - offerTableView.frame.origin.y;
-        [offerTableView setFrame:sizeNewTableFrame];*/
+        [offerTableView setFrame:sizeNewTableFrame];
     }
     return cell;
 }
@@ -820,6 +835,12 @@ didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     }
     [popupView removeFromSuperview];
     popupView = nil;
+}
+
+-(NSString *)encode:(NSString *)string {
+    NSData *decodedData = [[NSData alloc] initWithBase64EncodedString:string options:0];
+    NSString *decodedString = [[NSString alloc] initWithData:decodedData encoding:NSUTF8StringEncoding];
+    return decodedString;
 }
 
 - (void)didReceiveMemoryWarning

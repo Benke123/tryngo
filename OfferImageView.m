@@ -14,7 +14,7 @@
     UIDevice *currentDevice;
 }
 
-- (id)initWithFrame:(CGRect)frame andImageName:(NSString *)imageName;
+- (id)initWithFrame:(CGRect)frame andImageIndex:(NSString *)imageIndex andImageName:(NSString *)imageName;
 {
     self = [super initWithFrame:frame];
     if (self) {
@@ -65,12 +65,18 @@
         [backButton setBackgroundImage:elementImage forState:UIControlStateNormal];
         [titleView addSubview:backButton];
         
-        NSLog(@"bigOfferString = %@", imageName);
-        NSRange range = [imageName rangeOfString:@"&w=100&h=100&q=100"];
+/*        NSLog(@"bigOfferString = %@", imageName);
+        NSRange range;
+        if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+            range = [imageName rangeOfString:@"&w=50&h=50&q=100"];
+        }
+        if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+            range = [imageName rangeOfString:@"&w=100&h=100&q=100"];
+        }
         NSString *path = [imageName substringWithRange:NSMakeRange(0, imageName.length - range.length)];
         range = [path rangeOfString:@"https://www.tryngo.ch/timthumb.php?src="];
         path = [path substringFromIndex:range.length];
-        NSLog(@"path = %@", path);
+        NSLog(@"path = %@", path);*/
         
         CGRect sizeImageView = self.frame;
         sizeImageView.origin.y = titleView.frame.origin.y + titleView.frame.size.height;
@@ -79,7 +85,8 @@
         UIWebView *webView = [[UIWebView alloc]initWithFrame:sizeImageView];
         webView.delegate = self;
         [webView setScalesPageToFit:YES];
-        NSURL *nsurl=[NSURL URLWithString:path];
+//        NSURL *nsurl=[NSURL URLWithString:path];
+        NSURL *nsurl=[NSURL URLWithString:[NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].offerImagePrefix, imageIndex, imageName]];
         NSURLRequest *nsrequest=[NSURLRequest requestWithURL:nsurl];
         [webView loadRequest:nsrequest];
         [self addSubview:webView];

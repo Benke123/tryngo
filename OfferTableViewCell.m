@@ -72,13 +72,7 @@
 }
 
 -(void)create {
-//    NSLog(@"CGREct = (%f, %f, %f, %f)", self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.frame.size.height);
     UIDevice *currentDevice = [UIDevice currentDevice];
-//    offerName = @"Pompe";
-//    offerPlace = @"Creil, France";
-//    userName = @"HATIB AYUB";
-//    rating = @"0";
-//    price = @"$2.00 day";
     int space = 0;
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         space = 5;
@@ -87,13 +81,6 @@
         space = 10;
     }
     currentDevice = [UIDevice currentDevice];
-/*    UIFont *textFont;
-    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
-        textFont = [UIFont systemFontOfSize:15];
-    }
-    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
-        textFont = [UIFont systemFontOfSize:30];
-    }*/
     UIImage *elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_load_offer%@", [UserDataSingleton sharedSingleton].Sufix]];
     CGRect sizeOfferImageView;
     sizeOfferImageView.size.height = sizeOfferImageView.size.width = elementImage.size.height / 2;
@@ -104,26 +91,15 @@
         sizeOfferImageView.origin.x = 20;
     }
     sizeOfferImageView.origin.y = (selfFrame.size.height - sizeOfferImageView.size.height) / 2;
-//    sizeOfferImageView.origin.x = sizeOfferImageView.origin.y = 10;
-//    sizeOfferImageView.size.height = sizeOfferImageView.size.width = selfFrame.size.height - sizeOfferImageView.origin.y * 2;
     offerImageView = [[UIImageView alloc] initWithFrame:sizeOfferImageView];
-//    [offerImageView setBackgroundColor:[UIColor magentaColor]];
-//    [offerImageView setImage:offerImage];
-//    [offerImageView setImage:elementImage];
 //    NSString *offerUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].offerImagePrefix, index, offerImageString];
-    NSString *offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, index, offerImageString];
-/*    NSURL *offerUrlImage = [NSURL URLWithString:offerUrlString];
-    NSData *offerDataImage = [NSData dataWithContentsOfURL:offerUrlImage];
-    UIImage *offerImageFromUrl;
-    if (offerDataImage) {
-        offerImageFromUrl = [UIImage imageWithData:offerDataImage];
-    } else {
-        offerImageFromUrl = elementImage;
+    NSString *offerUrlString;
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, index, offerImageString];
     }
-    [offerImageView setImage:offerImageFromUrl];*/
-    [self getImage:offerUrlString andType:0];
-    [self addSubview:offerImageView];
-    
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        offerUrlString = [NSString stringWithFormat:@"%@/%@/%@&w=100&h=100&q=100", [UserDataSingleton sharedSingleton].thumbImagePrefix, index, offerImageString];
+    }
     CGRect sizeActivity;
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         sizeActivity.size.height = sizeActivity.size.width = 20;
@@ -137,9 +113,51 @@
     offerActivity = [[UIActivityIndicatorView alloc] initWithFrame:sizeActivity];
     [offerActivity setColor:[UIColor blackColor]];
     [self addSubview:offerActivity];
+    [offerActivity startAnimating];
+    UIImage *offerImage = [[APICache sharedAPICache] objectForKey:offerUrlString];
+    if (offerImage) {
+        [offerImageView setImage:offerImage];
+        [offerActivity stopAnimating];
+    } else {
+//        [self getImage:offerUrlString];
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            
+            UIImage *postImage = [UIImage  imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:offerUrlString]]];
+            
+            if (postImage) {
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:postImage forKey:offerUrlString];
+                    [offerImageView setImage:postImage];
+                    [offerActivity stopAnimating];
+                });
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:elementImage forKey:offerUrlString];
+                    [offerImageView setImage:elementImage];
+                    [offerActivity stopAnimating];
+                });
+            }
+        });
+    }
+    [self addSubview:offerImageView];
+    
+ /*   CGRect sizeActivity;
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        sizeActivity.size.height = sizeActivity.size.width = 20;
+    }
+    if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        sizeActivity.size.height = sizeActivity.size.width = 40;
+    }
+    sizeActivity.origin.x = offerImageView.frame.origin.x + (offerImageView.frame.size.width - sizeActivity.size.width) / 2;
+    sizeActivity.origin.y = offerImageView.frame.origin.y + (offerImageView.frame.size.height - sizeActivity.size.height) / 2;*/
+    
+/*    offerActivity = [[UIActivityIndicatorView alloc] initWithFrame:sizeActivity];
+    [offerActivity setColor:[UIColor blackColor]];
+    [self addSubview:offerActivity];
     if (!offerImageView.image) {
         [offerActivity startAnimating];
-    }
+    }*/
     
     elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"icon_star%@", [UserDataSingleton sharedSingleton].Sufix]];
     CGRect sizeRatingView;
@@ -174,7 +192,6 @@
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         [offerNameLabel setFont:[FONT regularFontWithSize:35]];
     }
- //   [offerNameLabel setFont:textFont];
     [self addSubview:offerNameLabel];
     
     elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"icon_geo_location%@", [UserDataSingleton sharedSingleton].Sufix]];
@@ -202,38 +219,51 @@
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         [placeLabel setFont:[FONT regularFontWithSize:24]];
     }
-//    [placeLabel setFont:textFont];
     [self addSubview:placeLabel];
     
     elementImage = [UIImage imageNamed:[NSString stringWithFormat:@"placeholder_user%@", [UserDataSingleton sharedSingleton].Sufix]];
-//    userImage = elementImage;
     CGRect sizeUserImage;
     sizeUserImage.size.height = elementImage.size.height / 2;
     sizeUserImage.size.width = elementImage.size.width / 2;
     sizeUserImage.origin.x = offerNameLabel.frame.origin.x;
     sizeUserImage.origin.y = offerImageView.frame.origin.y + offerImageView.frame.size.height - sizeUserImage.size.height;
-/*    sizeUserImage.origin.x = offerNameLabel.frame.origin.x;
-    sizeUserImage.origin.y = mapImageView.frame.origin.y + mapImageView.frame.size.height;
-    sizeUserImage.size.height = sizeUserImage.size.width = offerNameLabel.frame.size.height * 2;*/
     
     userImageView = [[UIImageView alloc] initWithFrame:sizeUserImage];
     [userImageView setContentMode:UIViewContentModeScaleToFill];
-//    [userImageView setBackgroundColor:[UIColor magentaColor]];
-//    [userImageView setImage:elementImage];
     NSString *userUrlString = [NSString stringWithFormat:@"%@%@/%@", [UserDataSingleton sharedSingleton].userImagePrefix, userId, userImageString];
-/*    NSURL *userUrlImage = [NSURL URLWithString:userUrlString];
-    NSData *userDataImage = [NSData dataWithContentsOfURL:userUrlImage];
-    UIImage *userImageFromUrl;
-    if (userDataImage) {
-        userImageFromUrl = [UIImage imageWithData:userDataImage];
+    sizeActivity.origin.x = userImageView.frame.origin.x + (userImageView.frame.size.width - sizeActivity.size.width) / 2;
+    sizeActivity.origin.y = userImageView.frame.origin.y + (userImageView.frame.size.height - sizeActivity.size.height) / 2;
+    
+    userActivity = [[UIActivityIndicatorView alloc] initWithFrame:sizeActivity];
+    [userActivity setColor:[UIColor blackColor]];
+    [self addSubview:userActivity];
+//    [self getImage:userUrlString andType:1];
+    [userActivity startAnimating];
+    UIImage *userImage = [[APICache sharedAPICache] objectForKey:userUrlString];
+    if (userImage) {
+        [userImageView setImage:userImage];
+        [userActivity stopAnimating];
     } else {
-        userImageFromUrl = elementImage;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            UIImage *postImage = [UIImage  imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:userUrlString]]];
+            if (postImage) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:postImage forKey:userUrlString];
+                    [userImageView setImage:postImage];
+                    [userActivity stopAnimating];
+                });
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[APICache sharedAPICache] setObject:elementImage forKey:userUrlString];
+                    [userImageView setImage:elementImage];
+                    [userActivity stopAnimating];
+                });
+            }
+        });
     }
-    [userImageView setImage:userImageFromUrl];*/
-    [self getImage:userUrlString andType:1];
     [self addSubview:userImageView];
     
-    sizeActivity.origin.x = userImageView.frame.origin.x + (userImageView.frame.size.width - sizeActivity.size.width) / 2;
+/*    sizeActivity.origin.x = userImageView.frame.origin.x + (userImageView.frame.size.width - sizeActivity.size.width) / 2;
     sizeActivity.origin.y = userImageView.frame.origin.y + (userImageView.frame.size.height - sizeActivity.size.height) / 2;
     
     userActivity = [[UIActivityIndicatorView alloc] initWithFrame:sizeActivity];
@@ -241,7 +271,7 @@
     [self addSubview:userActivity];
     if (!userImageView.image) {
         [userActivity startAnimating];
-    }
+    }*/
 //    [userImageView setImage:elementImage];
 
     
@@ -380,6 +410,5 @@
     [queue addOperation:fetchStreamOperation];
     }
 }
-
 
 @end
