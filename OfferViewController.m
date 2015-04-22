@@ -109,8 +109,6 @@
         urlString = [NSString stringWithFormat:@"http://www.tryngo.ch/api/getObjects?lat=%@&lng=%@&dist=10&limit=100&keyword=%@", latLocation, lngLocation, keyWord];
     }
     
-    NSLog(@"req = %@", urlString);
-    
 ///true request    = [NSString stringWithFormat:@"http://www.tryngo.ch/api/getObjects?lat=%@&lng=%@&dist=10&limit=100&category=%@&keyword=%@", latLocation, lngLocation, category, keyWord];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL: [NSURL URLWithString:urlString]];
     [request setHTTPMethod:@"POST"];
@@ -123,7 +121,6 @@
              offersArray = [NSJSONSerialization JSONObjectWithData:data
                                                            options:kNilOptions
                                                              error:nil];
-             NSLog(@"offersArray = %@", offersArray);
              int countOffer = 0;
              @try {
                  countOffer = [offersArray count];

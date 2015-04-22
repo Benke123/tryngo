@@ -847,7 +847,6 @@
             imagesString = [imagesString substringFromIndex:(range.location + 1)];
         }
     }
-    NSLog(@"images = %@", offerImagesArray);
     CGRect sizeOfferImageView;
     sizeOfferImageView.size.width = elementImage.size.width / 2;
     sizeOfferImageView.size.height = elementImage.size.height / 2;
@@ -1334,13 +1333,10 @@
 -(void)pressBookButton {
     NSString *urlEncoded = [[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlEncoded]];
-    NSLog(@"book string = %@", [NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]);
-    NSLog(@"book url = %@", [NSURL URLWithString:[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]]);
 //    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[NSString stringWithFormat:@"http://%@", [offerDictionary objectForKey:@"url"]]]];
 }
 
 - (void)offerImageTap {
-    NSLog(@"button.tag = %ld", (long)offerImageButton.tag);
     bigOfferImageView = [[OfferImageView alloc] initWithFrame:self.view.frame andImageIndex:offerIndex andImageName:[offerImagesArray objectAtIndex:offerImageButton.tag]];
     bigOfferImageView.delegate = self;
     [self.view addSubview:bigOfferImageView];

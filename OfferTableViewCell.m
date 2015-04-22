@@ -286,7 +286,13 @@
     sizeUserNameLabel.origin.y = userImageView.frame.origin.y + userImageView.frame.size.height / 4;
 //    sizeUserNameLabel.size.height = offerNameLabel.frame.size.height;
     sizeUserNameLabel.size.height = userImageView.frame.size.height / 4;
-    sizeUserNameLabel.size.width = selfFrame.size.width - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
+    if (selfFrame.size.width != 0) {
+        sizeUserNameLabel.size.width = selfFrame.size.width - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
+    } else if (self.frame.size.width != 0) {
+        sizeUserNameLabel.size.width = self.frame.size.width - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
+    } else {
+        sizeUserNameLabel.size.width = 768 - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
+    }
     
     UILabel *userNameLabel = [[UILabel alloc] initWithFrame:sizeUserNameLabel];
     [userNameLabel setText:userName];
