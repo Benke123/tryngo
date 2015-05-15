@@ -123,7 +123,6 @@
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             
             UIImage *postImage = [UIImage  imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:offerUrlString]]];
-            
             if (postImage) {
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -134,7 +133,7 @@
             } else {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[APICache sharedAPICache] setObject:elementImage forKey:offerUrlString];
-                    [offerImageView setImage:elementImage];
+                    [offerImageView setImage:[UIImage imageNamed:[NSString stringWithFormat:@"placeholder_offer%@", [UserDataSingleton sharedSingleton].Sufix]]];
                     [offerActivity stopAnimating];
                 });
             }
@@ -184,7 +183,9 @@
     sizeOfferNameLabel.size.width = sizeRatingView.origin.x - sizeOfferNameLabel.origin.x;
     
     UILabel *offerNameLabel = [[UILabel alloc] initWithFrame:sizeOfferNameLabel];
-    [offerNameLabel setText:offerName];
+    if (offerName) {
+        [offerNameLabel setText:offerName];
+    }
     [offerNameLabel setTextColor:[UIColor colorWithRed:43.0f/255.0f green:135.0f/255.0f blue:191.0f/255.0f alpha:1.0f]];
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         [offerNameLabel setFont:[FONT regularFontWithSize:20]];
@@ -212,7 +213,9 @@
     sizePlaceLabel.size.width = selfFrame.size.width - sizePlaceLabel.origin.x - space;
     
     UILabel *placeLabel = [[UILabel alloc] initWithFrame:sizePlaceLabel];
-    [placeLabel setText:offerPlace];
+    if (offerPlace) {
+        [placeLabel setText:offerPlace];
+    }
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         [placeLabel setFont:[FONT regularFontWithSize:14]];
     }
@@ -286,16 +289,18 @@
     sizeUserNameLabel.origin.y = userImageView.frame.origin.y + userImageView.frame.size.height / 4;
 //    sizeUserNameLabel.size.height = offerNameLabel.frame.size.height;
     sizeUserNameLabel.size.height = userImageView.frame.size.height / 4;
-    if (selfFrame.size.width != 0) {
-        sizeUserNameLabel.size.width = selfFrame.size.width - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
-    } else if (self.frame.size.width != 0) {
+//    if (selfFrame.size.width != 0) {
+        sizeUserNameLabel.size.width = [[UIScreen mainScreen] bounds].size.width - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
+/*    } else if (self.frame.size.width != 0) {
         sizeUserNameLabel.size.width = self.frame.size.width - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
     } else {
         sizeUserNameLabel.size.width = 768 - sizeUserNameLabel.origin.x - sizeUserNameLabel.size.width - space;
-    }
+    }*/
     
     UILabel *userNameLabel = [[UILabel alloc] initWithFrame:sizeUserNameLabel];
-    [userNameLabel setText:userName];
+    if (userName) {
+        [userNameLabel setText:userName];
+    }
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
         [userNameLabel setFont:[FONT regularFontWithSize:11]];
     }
@@ -316,6 +321,7 @@
         perHour = cost;
     }
     NSMutableAttributedString *costString = [[NSMutableAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@ %@", costUnit, perHour]];
+
     int rang = [perHour rangeOfString:@"per"].location;
     [costString addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithRed:221.0f/255.0f green:129.0f/255.0f blue:14.0f/255.0f alpha:1.0f] range:NSMakeRange(0, costUnit.length + rang)];
     UILabel *priceLabel = [[UILabel alloc] initWithFrame:sizePriceLabel];

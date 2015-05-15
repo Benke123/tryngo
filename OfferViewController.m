@@ -121,6 +121,7 @@
              offersArray = [NSJSONSerialization JSONObjectWithData:data
                                                            options:kNilOptions
                                                              error:nil];
+             NSLog(@"offersArray = %@", offersArray);
              int countOffer = 0;
              @try {
                  countOffer = [offersArray count];
@@ -726,16 +727,51 @@
     }
 //    cell.textLabel.text = [students objectAtIndex:indexPath.row];
     NSDictionary *offerDictionary = [offersArray objectAtIndex:indexPath.row];
-    cell.index = [offerDictionary objectForKey:@"id"];
-    cell.offerImageString = [offerDictionary objectForKey:@"image"];
-    cell.offerName = [self encode:[offerDictionary objectForKey:@"title"]];
-    cell.offerPlace = [self encode:[offerDictionary objectForKey:@"location"]];
-    cell.userImageString = [offerDictionary objectForKey:@"user_photo"];
-    cell.userId = [offerDictionary objectForKey:@"user_id"];
-    cell.userName = [self encode:[offerDictionary objectForKey:@"username"]];
-//    cell.price = [offerDictionary objectForKey:@"cost"];
-    cell.cost = [offerDictionary objectForKey:@"cost"];
-    cell.costUnit = [offerDictionary objectForKey:@"cost_unit"];
+    if ([offerDictionary objectForKey:@"id"] != [NSNull null]) {
+        cell.index = [offerDictionary objectForKey:@"id"];
+    } else {
+        cell.index = nil;
+    }
+    if ([offerDictionary objectForKey:@"image"] != [NSNull null]) {
+        cell.offerImageString = [offerDictionary objectForKey:@"image"];
+    } else {
+        cell.offerImageString = nil;
+    }
+    if ([offerDictionary objectForKey:@"title"] != [NSNull null]) {
+        cell.offerName = [self encode:[offerDictionary objectForKey:@"title"]];
+    } else {
+        cell.offerName = nil;
+    }
+    if ([offerDictionary objectForKey:@"location"] != [NSNull null]) {
+        cell.offerPlace = [self encode:[offerDictionary objectForKey:@"location"]];
+    } else {
+        cell.offerPlace = nil;
+    }
+    if ([offerDictionary objectForKey:@"user_photo"] != [NSNull null]) {
+        cell.userImageString = [offerDictionary objectForKey:@"user_photo"];
+    } else {
+        cell.userImageString = nil;
+    }
+    if ([offerDictionary objectForKey:@"user_id"] != [NSNull null]) {
+        cell.userId = [offerDictionary objectForKey:@"user_id"];
+    } else {
+        cell.userId = nil;
+    }
+    if ([offerDictionary objectForKey:@"username"] != [NSNull null]) {
+        cell.userName = [self encode:[offerDictionary objectForKey:@"username"]];
+    } else {
+        cell.userName = nil;
+    }
+    if ([offerDictionary objectForKey:@"cost"] != [NSNull null]) {
+        cell.cost = [offerDictionary objectForKey:@"cost"];
+    } else {
+        cell.cost = @"";
+    }
+    if ([offerDictionary objectForKey:@"cost_unit"] != [NSNull null]) {
+        cell.costUnit = [offerDictionary objectForKey:@"cost_unit"];
+    } else {
+        cell.costUnit = @"USD";
+    }
     cell.rating = @"0";
     if ((indexPath.item == countCell - 1) && (countCell < [offersArray count])) {
 //        [self pressMoreButton];

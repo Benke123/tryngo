@@ -235,7 +235,12 @@
         buttonFont = [FONT regularFontWithSize:42];
     }
     
-    NSString *offerName = [self encode:[offerDictionary objectForKey:@"title"]];
+    NSString *offerName;// = [self encode:[offerDictionary objectForKey:@"title"]];
+    if ([offerDictionary objectForKey:@"title"] != [NSNull null]) {
+        offerName = [self encode:[offerDictionary objectForKey:@"title"]];
+    } else {
+        offerName = nil;
+    }
     CGSize sizeString = [offerName sizeWithAttributes:@{NSFontAttributeName: buttonFont}];
     CGRect sizeOfferNameLabel;
     sizeOfferNameLabel.size.height = sizeString.height;
@@ -253,7 +258,13 @@
     [offerNameLabel setFont:buttonFont];
     [scrollView addSubview:offerNameLabel];
     
-    NSString *imagesString = [offerDictionary objectForKey:@"images"];
+    NSString *imagesString;// = [offerDictionary objectForKey:@"images"];
+    if ([offerDictionary objectForKey:@"images"] != [NSNull null]) {
+        imagesString = [offerDictionary objectForKey:@"images"];
+    } else {
+        imagesString = @"";
+    }
+
     NSRange range;
     while (imagesString) {
         range = [imagesString rangeOfString:@","];
@@ -378,7 +389,12 @@
     [queue addOperation:fetchStreamOperation];*/
     
     NSMutableArray *costStringArray = [[NSMutableArray alloc] init];
-    NSString *costString = [offerDictionary objectForKey:@"cost"];
+    NSString *costString;// = [offerDictionary objectForKey:@"cost"];
+    if ([offerDictionary objectForKey:@"cost"] != [NSNull null]) {
+        costString = [offerDictionary objectForKey:@"cost"];
+    } else {
+        costString = nil;
+    }
     while (costString) {
         range = [costString rangeOfString:@","];
         if (range.length == 0) {
@@ -410,7 +426,13 @@
     } @catch (NSException *e) {
         countCost = 0;
     }
-    NSString *costUnit = [offerDictionary objectForKey:@"cost_unit"];
+    NSString *costUnit;// = [offerDictionary objectForKey:@"cost_unit"];
+    if ([offerDictionary objectForKey:@"cost_unit"] != [NSNull null]) {
+        costUnit = [offerDictionary objectForKey:@"cost_unit"];
+    } else {
+        costUnit = @"USD";
+    }
+
     int rang;
     for (int i = 0; i < countCost; i++) {
         NSString *perHour = [costStringArray objectAtIndex:i];
@@ -439,7 +461,12 @@
     }
     
     float widthOfferDescription = scrollView.frame.size.width - offerImageView.frame.origin.x * 2;
-    NSString *offerDescription = [self encode:[offerDictionary objectForKey:@"description"]];
+    NSString *offerDescription;// = [self encode:[offerDictionary objectForKey:@"description"]];
+    if ([offerDictionary objectForKey:@"description"] != [NSNull null]) {
+        offerDescription = [self encode:[offerDictionary objectForKey:@"description"]];
+    } else {
+        offerDescription = nil;
+    }
     CGRect sizeOfferDescriptionLabel = [offerDescription boundingRectWithSize:CGSizeMake(widthOfferDescription, 1000)
                                                                       options:NSStringDrawingUsesLineFragmentOrigin
                                                                    attributes:@{NSFontAttributeName:buttonFont}
@@ -490,7 +517,12 @@
     if (currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
         buttonFont = [FONT regularFontWithSize:26];
     }
-    NSString *userName = [self encode:[offerDictionary objectForKey:@"username"]];
+    NSString *userName;// = [self encode:[offerDictionary objectForKey:@"username"]];
+    if ([offerDictionary objectForKey:@"username"] != [NSNull null]) {
+        userName = [self encode:[offerDictionary objectForKey:@"username"]];
+    } else {
+        userName = nil;
+    }
     sizeString = [userName sizeWithAttributes:@{NSFontAttributeName: buttonFont}];
     
     CGRect sizeUserNameLabel;
